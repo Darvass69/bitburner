@@ -7,9 +7,10 @@ step 3:
     instal git: https://git-scm.com/downloads
     clone this repo:
         click code & copy the url
-        (in git bash)
-        cd "directory"
-        git clone [url]
+        in git bash
+            (cd "directory")
+            git clone [url]
+        copy files to the desired folder
 
 step 4 & 5: run npmInstal.bat
 step 6: run startRemote.bat
