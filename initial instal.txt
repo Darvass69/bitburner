@@ -8,6 +8,7 @@ step 3:
     clone this repo:
         click code & copy the url
         (in git bash)
+        cd "directory"
         git clone [url]
 
 step 4 & 5: run npmInstal.bat
