@@ -1,0 +1,17 @@
+    this my initial setup
+
+follow https://github.com/bitburner-official/typescript-template/blob/main/BeginnersGuide.md 
+
+step 3:
+    download the files
+    instal git: https://git-scm.com/downloads
+    clone this repo:
+        click code & copy the url
+        (in git bash)
+        git clone [url]
+
+step 4 & 5: run npmInstal.bat
+step 6: run startRemote.bat
+
+in vscode
+    get extension: GitHub Pull Requests and Issues 
