@@ -1,4 +1,4 @@
-    this my initial setup
+    this is how I setup the repo
 
 follow https://github.com/bitburner-official/typescript-template/blob/main/BeginnersGuide.md 
 
