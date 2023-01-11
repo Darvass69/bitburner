@@ -1,0 +1,12 @@
+	from vs code
+shift+alt+r to open file dir
+double click startRemote.bat
+
+
+	in git bash
+cd "file dir"
+
+
+
+
+remove git repo: rm -rf .git
