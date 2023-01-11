@@ -1,1 +1,1 @@
-files are typescript, I might add .js files later.
+this is readme
