@@ -1,5 +1,4 @@
 import { NS } from "@ns";
-/** @param {NS} ns */
 
 /* The goals:
 	1. finds all available ram (& nuke some if they can be nuked)
@@ -21,22 +20,22 @@ import { NS } from "@ns";
 
 	special case: max threads for processes
 
+	
 	step 1: finding available space (Find_space(request))
     	for each time stamps (in allocated_RAM) included by the timing request
         	find all available block of RAM (& remaining RAM)
     	find all continuous block for all time stamps included that can fit the request
-    	select the one with < remaining RAM on server,
+    	select the one with smallest remaining RAM on server ()
 
 	step 2: write space found to allocated_RAM
-		
-	this is in src
+	
 
 */
 
 
 // test functions
 var Test = {
-	Write_to_port: function(i){
+	Write_to_port: function(i: number){
 		let data;
 		switch (i) {
 			case 1:
@@ -58,7 +57,6 @@ var Test = {
 		_ns.writePort(2, JSON.stringify(data));
 	}
 }
-
 
 
 
