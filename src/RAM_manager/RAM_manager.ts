@@ -143,4 +143,3 @@ function Fit_script_in_RAM(request) {
 function Fit_process_in_RAM(request) {
 
 }
-*/
