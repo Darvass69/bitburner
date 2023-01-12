@@ -1,0 +1,1 @@
+script to auto-run share() for an amount of RAM
