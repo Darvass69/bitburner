@@ -29,10 +29,11 @@ import { NS } from "@ns";
 
 	step 2: write space found to allocated_RAM
 		
-
+	this is in src
 
 */
 
+/*
 // test functions
 var Test = {
 	Write_to_port: function(i){
@@ -57,12 +58,12 @@ var Test = {
 		_ns.writePort(2, JSON.stringify(data));
 	}
 }
+*/
 
 
 
 
-
-
+/*
 import {Find_servers, Find_and_compromise, Get_RAM} from "function_find_RAM.ts";
 
 var _ns: NS; 
@@ -70,7 +71,7 @@ var RAM_state;
 export async function main(ns: NS): Promise<void> {
 	_ns = ns;
 
-	/* initialisation */
+	/* initialisation */ /*
 	// finds all available ram (& nuke some servers if they can be nuked)
 	let all_RAM = Find_all_RAM();
 	//ns.tprint(all_RAM);
@@ -143,3 +144,4 @@ function Fit_script_in_RAM(request) {
 function Fit_process_in_RAM(request) {
 
 }
+*/
