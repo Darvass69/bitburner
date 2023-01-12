@@ -77,58 +77,8 @@ port_RAM = {
 
 
 
-script =
-    {
-        script:{
-            script_name:["/name.js","server"], 
-            RAM:{
-                threads: 1,
-                thread_size: 1, 
-                server:[""]
-            },
-            timing: "infinite" | "instant" | [start, end],
-            args:[]
-        }
-    }
 
-process = 
-    {
-        process:{
-            requester: pid,
-            RAM: {
-                threads: 1,
-                thread_size: 1,
-                server:[""]
-            }, 
-            timing: "infinite" | "instant" | [start, end]
-        }
-    }
-
-free = 
-    {
-        free:{
-            requester_PID:[
-                {
-                    server: "",
-                    RAM: 1,
-                    timing: "infinite" | "instant" | [start, end]
-                }, 
-                {
-                    "...":"..."
-                }
-            ]
-        }
-    }
-
-
-
-
-
-
-
-
-
-
+// sort keys in obj
 /** @param {NS} ns */
 export async function main(ns) {
     const obj = {

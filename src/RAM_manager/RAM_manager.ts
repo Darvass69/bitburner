@@ -69,7 +69,7 @@ var _ns: NS;
 var RAM_state;
 export async function main(ns: NS): Promise<void> {
 	_ns = ns;
-
+	
 	/* initialisation */ 
 	// finds all available ram (& nuke some servers if they can be nuked)
 	let all_RAM = Find_all_RAM();
