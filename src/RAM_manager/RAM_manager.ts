@@ -4,8 +4,8 @@
 ? This is blue: questions
 & This is pink: main structure
 ^ This is yellow: structure
-~ This is purple: structure
-* This is green:
+* This is green: structure
+~ This is purple: 
 TODO this is orange: todo
 */
 
@@ -99,7 +99,7 @@ export async function main(ns: NS): Promise<void> {
 	//^ ----------------------------- Initialization --------------------------------
 	// finds all available ram (& nuke some servers if they can be nuked)
 	let all_RAM = Find_all_RAM();
-	//ns.tprint(all_RAM);
+	//! ns.tprint(all_RAM);
 
 	ns.clearPort(2);
 	// 1: script, 2: process, 3: free, 4: re-scan
@@ -116,25 +116,25 @@ export async function main(ns: NS): Promise<void> {
 			// Identify request type
 			let request: Requester.RAMRequest = JSON.parse(port_data);
 
-			//~ --------------------------------- Script ------------------------------------
+			//* --------------------------------- Script ------------------------------------
 			if (request.Script){
 				ns.tprint("request.script: ", request.Script); //! print
 				Fit_script_in_RAM(request.Script);
 			}
 
-			//~ --------------------------------- Process -----------------------------------
+			//* --------------------------------- Process -----------------------------------
 			else if (request.Process){
 				ns.tprint("request.process: ", request.Process); //! print
 				Fit_process_in_RAM(request.Process);
 			}
 
-			//~ ---------------------------------- Free -------------------------------------
+			//* ---------------------------------- Free -------------------------------------
 			else if (request.Free) {
 				ns.tprint("request.free: ", request.Free); //! print
 				RAM_state = Free(request.Free);
 			}
 
-			//~ --------------------------------- Re_Scan -----------------------------------
+			//* --------------------------------- Re_Scan -----------------------------------
 			else if (request.Re_Scan){
 				all_RAM = Find_all_RAM()
 				ns.tprint("request.re_scan: ", request.Re_Scan); //! print

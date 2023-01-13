@@ -28,4 +28,9 @@
         "sqlinject",
         "tprint"
     ],
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "prettier.bracketSameLine": false
 }

@@ -68,7 +68,7 @@ export function Find_and_compromise(ns: NS, all_servers: string[]) {
 }
 
 
-//~ --------------------------------- Is Weak -----------------------------------
+//* --------------------------------- Is Weak -----------------------------------
 function Is_weak(ns: NS, server: string) {
 	// remove home and darkweb
 	if (server == "home" || server == "darkweb"){
@@ -100,7 +100,7 @@ function Is_weak(ns: NS, server: string) {
 }
 
 
-//~ ------------------------------- Compromise ----------------------------------
+//* ------------------------------- Compromise ----------------------------------
 function Compromise(ns: NS, target: string): string {
 	// open ports
 	if (ns.fileExists("BruteSSH.exe")) {
