@@ -20,13 +20,15 @@
     },
     "peacock.color": "#081026",
     "cSpell.words": [
-        "brutessh",
-        "darkweb",
-        "ftpcrack",
-        "httpworm",
-        "relaysmtp",
-        "sqlinject",
-        "tprint"
+      "brutessh",
+      "darkweb",
+      "dles",
+      "ftpcrack",
+      "httpworm",
+      "joesguns",
+      "relaysmtp",
+      "sqlinject",
+      "tprint"
     ],
     "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[javascript]": {

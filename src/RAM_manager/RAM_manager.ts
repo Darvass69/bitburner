@@ -26,9 +26,12 @@ TODO this is orange: todo
 	(because some processes benefit from multi-threading, and are worse when separated)
 
 	a request include a timing element, either "infinite" "instant" [start_time, end_time]
+		"instant" can't be planned (in allocated RAM) for somewhere in the future, they need to be run now, or put into a queue that will try to run them later
 
 	special case: max threads for processes
-
+		reserved RAM: only to tell a requester au much RAM is available, the reserved RAM can't be reserved for 2 requesters but it can be given to any scripts
+			it's not really reserved, it's just telling the requester "If you want, I have that much RAM. I wont keep it free if I need it, but you can take it if its free"
+			useful when multiple requesters wants max threads because we can reserve ex: 1/2 the RAM for each which allows both to get as much as they want
 	
 	step 1: finding available space (Find_space(request))
     	for each time stamps (in allocated_RAM) included by the timing request
@@ -38,167 +41,232 @@ TODO this is orange: todo
 
 	step 2: write space found to allocated_RAM
 	
+	behavior examples:
+		1: normal scripts, ex: map.js
+			in terminal:
+				run manual_requester.js /map/map.js
+					(because of the ~4GB buffer, manual_requester.js can be run)
+			it sends in port 2
+				{Script: {
+					ScriptName : ["/map/map.js", "home"];
+					RAM: {
+						Threads: 1,
+						ThreadSize: 9.45,
+						Server: ["home"],
+					}
+					Timing: "instant",
+					args: [],
+				}}
+			now RAM_manager.js takes it from port 2 and see if there's space, then exec it if it can
+
+		2: scripts that run processes (no complex timing), ex: share-controller.js
+			(after doing like 1: but with share-controller.js and args = [10], share controller PID = 42)
+			share controller sends in port 2 a process request:
+				{Process: {
+					Requester: 42;
+					RAM: { // share controller did some calculations to have max nb of threads for 10 GB
+						Threads: 2,
+						ThreadSize: 4,
+						Server: ["home"],
+					}
+					Timing: "instant",
+				}}
+			now RAM_manager.js
+		3: same as before but with specific timing, ex:  ***
+			(after doing like 1: but with ***)
+			share controller sends in port 2 a process request:
+				{Process: {
+					Requester: 42;
+					RAM: { // share controller did some calculations to have max nb of threads for 10 GB
+						Threads: 2,
+						ThreadSize: 4,
+						Server: ["home"],
+					}
+					Timing: [0,15_000], // starts at time=0, end at time=15_000
+				}}
+			now RAM_manager.js
+					
 
 */
 
 //& -----------------------------------------------------------------------------
-//&                                   Imports                                    
+//&                                   Imports
 //& -----------------------------------------------------------------------------
 import { NS, PortData } from "@ns";
 
 //~ ------------------------ Type And Interface Import --------------------------
 import type { AllRAM } from "./functions_find_RAM";
-import type { PID } from "./Requester_Types";
-import type * as Requester from "./Requester_Types";
+import type {ScriptRequest, ProcessRequest, FreeRequest, ReScanRequest, RAMRequest, PID} from "./Requester_Types";
 
 //~ ----------------------------- Function import -------------------------------
-import {Find_servers, Find_and_compromise, Get_RAM} from "./functions_find_RAM";
-
-
+import {
+  Find_servers,
+  Find_and_compromise,
+  Get_RAM,
+} from "./functions_find_RAM";
 
 //& -----------------------------------------------------------------------------
-//&                      Test functions to test functions                     
+//&                      Test functions to test functions
 //& -----------------------------------------------------------------------------
 let Test = {
-	//^ ------------------------------ Write To Port --------------------------------
-	Write_to_port: function(i: number){
-		let data: Requester.RAMRequest | undefined;
-		switch (i) {
-			case 1:
-				let s: Requester.ScriptRequest;
-				data = {Script: {script_name: ["test.js", "home"], RAM: {threads: 1, thread_size: 1.6, server: ["home"]}, timing: "instant", args: []}};
-				break;
-			case 2:
-				let r: Requester.ProcessRequest;
-				data = {Process: {requester: 69, RAM: {threads: 5, thread_size: 2.6, server: ["home"]}, timing: "infinite"}};
-				break;
-			case 3:
-				let f: Requester.FreeRequest;
-				data = {Free: {31: [{server: "home", RAM: 8, timing: "infinite"}]}}
-				break;
-			case 4:
-				let re: Requester.ReScanRequest;
-				data = {Re_Scan: true};
-				break;
-		}
-		_ns.writePort(2, JSON.stringify(data));
-	}
+  //^ ------------------------------ Write To Port --------------------------------
+  Write_to_port: function (i: number) {
+    let data: RAMRequest | null = null;
+    switch (i) {
+      case 1:
+        let s: ScriptRequest;
+        data = {
+          Script: {
+            ScriptName: ["test.js", "home"],
+            RAM: { Threads: 1, ThreadSize: 1.6, Server: ["home"] },
+            Timing: "instant",
+            args: [],
+          },
+        };
+        break;
+      case 2:
+        let r: ProcessRequest;
+        data = {
+          Process: {
+            Requester: 69,
+            RAM: { Threads: 5, ThreadSize: 2.6, Server: ["home"] },
+            Timing: [56],
+          },
+        };
+        break;
+      case 3:
+        let f: FreeRequest;
+        data = {
+          Free: { 31: [{ Server: "home", RAM: 8, Timing: "infinite" }] },
+        };
+        break;
+      case 4:
+        let re: ReScanRequest;
+        data = { Re_Scan: true };
+        break;
+    }
+    _ns.writePort(2, JSON.stringify(data));
+  },
 
-	//^ --------------------------- Next Test Function ------------------------------
-}
+  //^ --------------------------- Next Test Function ------------------------------
+};
 
-
-var _ns: NS; 
+var _ns: NS;
 var RAM_state; //!
 //& -----------------------------------------------------------------------------
-//&                                    MAIN                                    
+//&                                    MAIN
 //& -----------------------------------------------------------------------------
 export async function main(ns: NS): Promise<void> {
-	_ns = ns;
+  _ns = ns;
 
-	//^ ----------------------------- Initialization --------------------------------
-	// finds all available ram (& nuke some servers if they can be nuked)
-	let all_RAM = Find_all_RAM();
-	//! ns.tprint(all_RAM);
+  //^ ----------------------------- Initialization --------------------------------
+  // finds all available ram (& nuke some servers if they can be nuked)
+  let all_RAM = Find_all_RAM();
+  //! ns.tprint(all_RAM);
 
-	ns.clearPort(2);
-	// 1: script, 2: process, 3: free, 4: re-scan
-	Test.Write_to_port(1)
+  ns.clearPort(2);
+  // 1: script, 2: process, 3: free, 4: re-scan
+  Test.Write_to_port(1);
 
-	//& -------------------------------- Main loop ----------------------------------
-	RAM_state = {}; //!
-	let scripts = []; //!
-	//while (true){
-		//^ ------------------------ Read request from port 2 ---------------------------
-		let port_data: string = String(ns.readPort(2));
-		ns.tprint("port_data: ", port_data); //! print
-		if (port_data != "NULL PORT DATA"){
-			// Identify request type
-			let request: Requester.RAMRequest = JSON.parse(port_data);
+  //& -------------------------------- Main loop ----------------------------------
+  RAM_state = {}; //!
+  let scripts: any = []; //!
+  //while (true){
+  //^ ------------------------ Read request from port 2 ---------------------------
+  let port_data: string = String(ns.readPort(2));
+  ns.tprint("port_data: ", port_data); //! print
+  if (port_data != "NULL PORT DATA") {
+    // Identify request type
+    let request: RAMRequest = JSON.parse(port_data);
 
-			//* --------------------------------- Script ------------------------------------
-			if (request.Script){
-				ns.tprint("request.script: ", request.Script); //! print
-				Fit_script_in_RAM(request.Script);
-			}
+	// TODO finish each types of request
+    //* --------------------------------- Script ------------------------------------
+    if (request.Script) {
+      ns.tprint("request.script: ", request.Script); //! print
+      Fit_script_in_RAM(request.Script);
+    }
 
-			//* --------------------------------- Process -----------------------------------
-			else if (request.Process){
-				ns.tprint("request.process: ", request.Process); //! print
-				Fit_process_in_RAM(request.Process);
-			}
+    //* --------------------------------- Process -----------------------------------
+    else if (request.Process) {
+      ns.tprint("request.process: ", request.Process); //! print
+      Fit_process_in_RAM(request.Process);
+    }
 
-			//* ---------------------------------- Free -------------------------------------
-			else if (request.Free) {
-				ns.tprint("request.free: ", request.Free); //! print
-				RAM_state = Free(request.Free);
-			}
+    //* ---------------------------------- Free -------------------------------------
+    else if (request.Free) {
+      ns.tprint("request.free: ", request.Free); //! print
+      RAM_state = Free(request.Free);
+    }
 
-			//* --------------------------------- Re_Scan -----------------------------------
-			else if (request.Re_Scan){
-				all_RAM = Find_all_RAM()
-				ns.tprint("request.re_scan: ", request.Re_Scan); //! print
-			}
-		}
+    //* --------------------------------- Re_Scan -----------------------------------
+    else if (request.Re_Scan) {
+      all_RAM = Find_all_RAM();
+      ns.tprint("request.re_scan: ", request.Re_Scan); //! print
+    }
+  }
 
-		//^ ------------------------- Manage running scripts ----------------------------
-		// manage running scripts and free their RAm when they stop
-		let stopped = Check_stopped_scripts(scripts)
-		for (let script in stopped){
-			Free_script(script);
-		}
+  //^ ------------------------- Manage running scripts ----------------------------
+  // manage running scripts and free their RAm when they stop
+  // TODO
+  let stopped = Check_stopped_scripts(scripts);
+  for (let script of stopped) {
+    Free_script(script);
+  }
 
-		await ns.sleep(1000);
-	//}
+  await ns.sleep(1000);
+  //}
 }
 
 //& -----------------------------------------------------------------------------
-//&                              Request Functions                               
+//&                              Request Functions
 //& -----------------------------------------------------------------------------
 //^ ------------------------------ Find All RAM ---------------------------------
 // finds all available ram (& nuke some servers if they can be nuked)
 function Find_all_RAM() {
-	// get all available server
-	let all_servers = Find_servers(_ns); // returns an array of all the servers
-	// get all admin/nuke all Nuke-able
-	let admin_servers = Find_and_compromise(_ns, all_servers); // returns an array of all the admin servers
-	// get the RAM of all admin servers
-	let all_RAM = Get_RAM(_ns, admin_servers) // returns the RAM of all the admin servers as AllRAM
-	return all_RAM;
+  // get all available server
+  let all_servers = Find_servers(_ns); // returns an array of all the servers
+  // get all admin/nuke all Nuke-able
+  let admin_servers = Find_and_compromise(_ns, all_servers); // returns an array of all the admin servers
+  // get the RAM of all admin servers
+  let all_RAM = Get_RAM(_ns, admin_servers); // returns the RAM of all the admin servers as AllRAM
+  return all_RAM;
 }
-
 
 //^ ---------------------------- Fit Script In RAM ------------------------------
 //!
-function Fit_script_in_RAM(request: Requester.ScriptRequest) {
+function Fit_script_in_RAM(request: ScriptRequest) {
 
 }
-
 
 //^ --------------------------- Fit Process In RAM ------------------------------
-function Fit_process_in_RAM(request: Requester.ProcessRequest) {
+function Fit_process_in_RAM(request: ProcessRequest) {
 
 }
-
 
 //^ ---------------------------------- Free -------------------------------------
 // !!!
-function Free(request: Requester.FreeRequest) {
+function Free(request: FreeRequest) {
+
+}
+
+
+function Fit(request: ScriptRequest | ProcessRequest) {
 
 }
 
 
 
-//& -----------------------------------------------------------------------------
-//&                      Manage Running Scripts Functions                        
-//& -----------------------------------------------------------------------------
-//^ -------------------------- Check Stopped Scripts ------------------ ----------
-function Check_stopped_scripts(script: PID): void{
-	
-}
 
+
+//& -----------------------------------------------------------------------------
+//&                      Manage Running Scripts Functions
+//& -----------------------------------------------------------------------------
+//^ -------------------------- Check Stopped Scripts ----------------------------
+function Check_stopped_scripts(script: PID): number[] {
+	return [1,2,3,4,5,6,7,8]
+}
 
 //^ ------------------------------- Free Script ---------------------------------
-function Free_script(script: PID): void{
+function Free_script(script: PID): void {
 
 }
