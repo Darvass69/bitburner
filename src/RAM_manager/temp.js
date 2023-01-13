@@ -1,4 +1,15 @@
 /*
+// This is crossed out
+& This is pink
+! This is red
+^ This is yellow
+? This is blue
+* This is green
+~ This is purple
+TODO this is orange
+*/
+
+/*
 break script PIDs because integer limit?
 
 */
@@ -10,14 +21,14 @@ break script PIDs because integer limit?
 1: FINDING RAM
 	This step is pretty straight forward,
 	Find the max RAM of every available server and update it when new servers are nuked/bought and home RAM gets upgraded
-		this can be trigered by scripts by sending a "re-scan" request in port 2
+		this can be triggered by scripts by sending a "re-scan" request in port 2
 			re-scan request = {re-scan: true}
 
 2: ALLOCATING RAM
 	always keep ~4GB on home for a launch.js script and manual scripts.
 
 	for each requests, the manager will try to give the requested RAM on a single server. 
-	(because some processes benefit from multi-threading, and are worse when seperated)
+	(because some processes benefit from multi-threading, and are worse when separated)
 
 	a request include a timing element, either "infinite", "instant", [start_time, end_time]
 
@@ -90,5 +101,5 @@ export async function main(ns) {
     };
     // Sort ascending.
     const key = Object.keys(obj).sort((a, b) => a - b);
-    key.forEach((k) => ns.tprintf(`key = ${k}, value = ${obj[k]}`));
+    key.forEach((k) => ns.tprint(`key = ${k}, value = ${obj[k]}`));
 }
