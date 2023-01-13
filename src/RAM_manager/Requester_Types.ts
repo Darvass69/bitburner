@@ -95,6 +95,7 @@ export interface RAMRequest{
 
 /* -------------------------------------------------------------------------- */
 // below is just testing the types and interfaces to make sure they work as planned
+import { NS, PortData } from "@ns";
 export async function main(ns: NS): Promise<void> {
 
 let script: ScriptRequest = {
