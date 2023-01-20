@@ -53,7 +53,7 @@ TODO this is orange: todo
 import { NS, PortData } from "@ns";
 
 //~ ------------------------ Type And Interface Import --------------------------
-import type { AllRAM } from "./functions_find_RAM";
+import type { AllRAM } from "./FindAllRAM";
 import type {ScriptRequest, ProcessRequest, FreeRequest, ReScanRequest, RAMRequest, PID} from "./Requester_Types";
 
 //~ ----------------------------- Function import -------------------------------
@@ -61,7 +61,7 @@ import {
   Find_servers,
   Find_and_compromise,
   Get_RAM,
-} from "./functions_find_RAM";
+} from "./FindAllRAM";
 
 //& -----------------------------------------------------------------------------
 //&                      Test functions to test functions

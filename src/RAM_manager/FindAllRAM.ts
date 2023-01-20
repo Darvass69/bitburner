@@ -107,7 +107,7 @@ function Compromise(ns: NS, target: string): string {
   return target;
 }
 
-// TODO
+
 //^ --------------------------------- Get RAM -----------------------------------
 // returns the RAM of all the admin servers in the form:{server1: RAM, server2: RAM, ... }
 export function Get_RAM(ns: NS, admin_servers: string[]): AllRAM {
