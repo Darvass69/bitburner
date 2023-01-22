@@ -54,13 +54,13 @@ import { NS, PortData } from "@ns";
 
 //~ ------------------------ Type And Interface Import --------------------------
 import type { AllRAM } from "./FindAllRAM";
-import type {ScriptRequest, ProcessRequest, FreeRequest, ReScanRequest, RAMRequest, PID} from "./Requester_Types";
+import type {ScriptRequest, ProcessRequest, FreeRequest, ReScanRequest, RAMRequest, PID} from "./Requester_types";
 
 //~ ----------------------------- Function import -------------------------------
 import {
-  Find_servers,
-  Find_and_compromise,
-  Get_RAM,
+    Find_servers,
+    Find_and_compromise,
+    Get_RAM,
 } from "./FindAllRAM";
 
 //& -----------------------------------------------------------------------------
@@ -115,64 +115,64 @@ var RAM_state; //!
 //&                                    MAIN
 //& -----------------------------------------------------------------------------
 export async function main(ns: NS): Promise<void> {
-  _ns = ns;
+    _ns = ns;
 
-  //^ ----------------------------- Initialization --------------------------------
-  // finds all available ram (& nuke some servers if they can be nuked)
-  let all_RAM = Find_all_RAM();
-  //! ns.tprint(all_RAM);
+    //^ ----------------------------- Initialization --------------------------------
+    // finds all available ram (& nuke some servers if they can be nuked)
+    let all_RAM = Find_all_RAM();
+    //! ns.tprint(all_RAM);
 
-  ns.clearPort(2);
-  // 1: script, 2: process, 3: free, 4: re-scan
-  Test.Write_to_port(1);
+    ns.clearPort(2);
+    // 1: script, 2: process, 3: free, 4: re-scan
+    Test.Write_to_port(1);
 
-  //& -------------------------------- Main loop ----------------------------------
-  RAM_state = {}; //!
-  let scripts: any = []; //!
-  //while (true){
-  //^ ------------------------ Read request from port 2 ---------------------------
-  let port_data: string = String(ns.readPort(2));
-  ns.tprint("port_data: ", port_data); //! print
-  if (port_data != "NULL PORT DATA") {
-    // Identify request type
-    let request: RAMRequest = JSON.parse(port_data);
+    //& -------------------------------- Main loop ----------------------------------
+    RAM_state = {}; //!
+    let scripts: any = []; //!
+    //while (true){
+    	//^ ------------------------ Read request from port 2 ---------------------------
+    	let port_data: string = String(ns.readPort(2));
+    	ns.tprint("port_data: ", port_data); //! print
+    	if (port_data != "NULL PORT DATA") {
+    		// Identify request type
+    		let request: RAMRequest = JSON.parse(port_data);
 
-	// TODO finish each types of request
-    //* --------------------------------- Script ------------------------------------
-    if (request.Script) {
-      ns.tprint("request.script: ", request.Script); //! print
-      Fit_script_in_RAM(request.Script);
-    }
+			// TODO finish each types of request
+    		//* --------------------------------- Script ------------------------------------
+    		if (request.Script) {
+    		    ns.tprint("request.script: ", request.Script); //! print
+    		    Fit_script_in_RAM(request.Script);
+    		}
 
-    //* --------------------------------- Process -----------------------------------
-    else if (request.Process) {
-      ns.tprint("request.process: ", request.Process); //! print
-      Fit_process_in_RAM(request.Process);
-    }
+	    	//* --------------------------------- Process -----------------------------------
+	    	else if (request.Process) {
+	    	    ns.tprint("request.process: ", request.Process); //! print
+	    	    Fit_process_in_RAM(request.Process);
+	    	}
 
-    //* ---------------------------------- Free -------------------------------------
-    else if (request.Free) {
-      ns.tprint("request.free: ", request.Free); //! print
-      RAM_state = Free(request.Free);
-    }
+	    	//* ---------------------------------- Free -------------------------------------
+	    	else if (request.Free) {
+	    	    ns.tprint("request.free: ", request.Free); //! print
+	    	    RAM_state = Free(request.Free);
+	    	}
 
-    //* --------------------------------- Re_Scan -----------------------------------
-    else if (request.Re_Scan) {
-      all_RAM = Find_all_RAM();
-      ns.tprint("request.re_scan: ", request.Re_Scan); //! print
-    }
-  }
+	    	//* --------------------------------- Re_Scan -----------------------------------
+	    	else if (request.Re_Scan) {
+	    	    all_RAM = Find_all_RAM();
+	    	    ns.tprint("request.re_scan: ", request.Re_Scan); //! print
+	    	}
+		}
 
-  //^ ------------------------- Manage running scripts ----------------------------
-  // manage running scripts and free their RAm when they stop
-  // TODO
-  let stopped = Check_stopped_scripts(scripts);
-  for (let script of stopped) {
-    Free_script(script);
-  }
+    	//^ ------------------------- Manage running scripts ----------------------------
+    	// manage running scripts and free their RAm when they stop
+    	// TODO
+    	let stopped = Check_stopped_scripts(scripts);
+    	for (let script of stopped) {
+    	    Free_script(script);
+    	}
 
-  await ns.sleep(1000);
-  //}
+    	await ns.sleep(1000);
+    //}
 }
 
 //& -----------------------------------------------------------------------------
@@ -181,25 +181,48 @@ export async function main(ns: NS): Promise<void> {
 //^ ------------------------------ Find All RAM ---------------------------------
 // finds all available ram (& nuke some servers if they can be nuked)
 function Find_all_RAM() {
-  // get all available server
-  let all_servers = Find_servers(_ns); // returns an array of all the servers
-  // get all admin/nuke all Nuke-able
-  let admin_servers = Find_and_compromise(_ns, all_servers); // returns an array of all the admin servers
-  // get the RAM of all admin servers
-  let all_RAM = Get_RAM(_ns, admin_servers); // returns the RAM of all the admin servers as AllRAM
-  return all_RAM;
+    // get all available server
+    let all_servers = Find_servers(_ns); // returns an array of all the servers
+    // get all admin/nuke all Nuke-able
+    let admin_servers = Find_and_compromise(_ns, all_servers); // returns an array of all the admin servers
+    // get the RAM of all admin servers
+    let all_RAM = Get_RAM(_ns, admin_servers); // returns the RAM of all the admin servers as AllRAM
+    return all_RAM;
 }
 
 //^ ---------------------------- Fit Script In RAM ------------------------------
 //!
 function Fit_script_in_RAM(request: ScriptRequest) {
-
+	// start simple, find available RAM with t = 0
+	Find_available()
 }
 
 //^ --------------------------- Fit Process In RAM ------------------------------
 function Fit_process_in_RAM(request: ProcessRequest) {
 
 }
+
+type available_RAM = { [server: string]: number };
+//! this is going to be removed eventually
+type temp_RAM_obj = {
+	[PID: number]: {
+		Script?: number;
+		Process?: number;
+		Reserved?: [Reserved: number, Priority: number]
+	}
+}
+
+function Find_available(servers: string[], all_RAM: AllRAM, RAM_state: RAMState): available_RAM{
+	let time = 0
+	for (let server of servers){
+		let temp:temp_RAM_obj = RAM_state[time][server]\
+
+	}
+
+
+	return 
+}
+
 
 //^ ---------------------------------- Free -------------------------------------
 // !!!

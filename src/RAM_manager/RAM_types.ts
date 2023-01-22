@@ -4,7 +4,7 @@ type RAM = number | null;
 
 // internal object used to regulate allocated RAM and keep track of things
 //? add something for instant time?
-type AllocatedRAM = {
+type RAMState = {
     [Time: number]: {
         [Server: string]: {
             [PID: number]: {
@@ -16,12 +16,15 @@ type AllocatedRAM = {
     }
 }
 
-// for port 1, same as allocated RAM but primary key is the PID of scripts
+// for port 1, same as RAM state but primary key is the PID of scripts
+// TODO test time integration in the type
 type PortRAM = {
     [PID: number]:{
         Script: [Server: string, RAM: number];
-        Process?: [Server: string, RAM: number][];
-        Reserved?: [Server: string, RAM: number, Priority: number][]
+        Process?: {
+            [Time: number]: [Server: string, RAM: number][]
+        };
+        Reserved?: [Server: string, RAM: number, Priority: number][];
     }
 }
 
