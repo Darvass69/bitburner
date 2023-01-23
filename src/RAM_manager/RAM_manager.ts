@@ -110,6 +110,7 @@ let Test = {
 };
 
 var _ns: NS;
+var all_RAM;
 var RAM_state; //!
 //& -----------------------------------------------------------------------------
 //&                                    MAIN
@@ -176,22 +177,28 @@ export async function main(ns: NS): Promise<void> {
 }
 
 //& -----------------------------------------------------------------------------
-//&                              Request Functions
+//&                                   All RAM                                    
 //& -----------------------------------------------------------------------------
-//^ ------------------------------ Find All RAM ---------------------------------
-// finds all available ram (& nuke some servers if they can be nuked)
+/** finds all available ram (& nuke some servers if they can be nuked) */
 function Find_all_RAM() {
-    // get all available server
-    let all_servers = Find_servers(_ns); // returns an array of all the servers
-    // get all admin/nuke all Nuke-able
-    let admin_servers = Find_and_compromise(_ns, all_servers); // returns an array of all the admin servers
-    // get the RAM of all admin servers
-    let all_RAM = Get_RAM(_ns, admin_servers); // returns the RAM of all the admin servers as AllRAM
-    return all_RAM;
+	// get all available server
+	let all_servers = Find_servers(_ns); // returns an array of all the servers
+	// get all admin/nuke all Nuke-able
+	let admin_servers = Find_and_compromise(_ns, all_servers); // returns an array of all the admin servers
+	// get the RAM of all admin servers
+	all_RAM = Get_RAM(_ns, admin_servers); // returns the RAM of all the admin servers as AllRAM
 }
+
+//& -----------------------------------------------------------------------------
+//&                                Fit functions                                 
+//& -----------------------------------------------------------------------------
 
 //^ ---------------------------- Fit Script In RAM ------------------------------
 //!
+/** Tries to fit a script request in the available RAM
+ * 
+ * @param {ScriptRequest} request Request from a script that want space to be run
+ */
 function Fit_script_in_RAM(request: ScriptRequest) {
 	// start simple, find available RAM with t = 0
 	Find_available()
@@ -212,25 +219,46 @@ type temp_RAM_obj = {
 	}
 }
 
-function Find_available(servers: string[], all_RAM: AllRAM, RAM_state: RAMState): available_RAM{
-	let time = 0
-	for (let server of servers){
-		let temp:temp_RAM_obj = RAM_state[time][server]
-
+/** Find all the RAM not allocated
+ * 
+ * 
+ */
+function Find_free(all_RAM: AllRAM, RAM_state: RAMState): AllRAM{
+	let Free_RAM: AllRAM
+	for (let time in RAM_state) {
+		for (let server in RAM_state[time]){
+			let sum = 0
+			for (let PID in RAM_state[time][server]) {
+				RAM_state[time][server][PID]
+			}
+			
+		}
 	}
+}
+
+
+function Find_available(servers: string[], all_RAM: AllRAM, RAM_state: RAMState): available_RAM{
+	let times = [0, 15000, 30000]
+	for (let time of times){
+		for (let server of servers){
+			let temp:temp_RAM_obj = RAM_state[time][server]
+	
+		}
+	}
+	
 
 
 	return 
 }
 
-function Add_to_RAM_state(RAM_State: RAMState, Time: number, Server: string, PID: PID, Type: "Script" | "Process" | "Reserved", value: number, array: [Reserved: number, Priority: number]){
+function Add_to_RAM_state(RAM_State: RAMState, Time: number, Server: string, PID: PID, Type: "Script" | "Process" | "Reserved", 
+		value: number, array: [Reserved: number, Priority: number]){
 
 	if (Type == "Script" || Type == "Process"){
 		let value2 = RAM_State[Time][Server][PID][Type]
 		if (value2 !== undefined){
 			RAM_State[Time][Server][PID][Type] = value + value2
 		}
-		
 	}
 }
 
