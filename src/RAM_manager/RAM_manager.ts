@@ -215,12 +215,23 @@ type temp_RAM_obj = {
 function Find_available(servers: string[], all_RAM: AllRAM, RAM_state: RAMState): available_RAM{
 	let time = 0
 	for (let server of servers){
-		let temp:temp_RAM_obj = RAM_state[time][server]\
+		let temp:temp_RAM_obj = RAM_state[time][server]
 
 	}
 
 
 	return 
+}
+
+function Add_to_RAM_state(RAM_State: RAMState, Time: number, Server: string, PID: PID, Type: "Script" | "Process" | "Reserved", value: number, array: [Reserved: number, Priority: number]){
+
+	if (Type == "Script" || Type == "Process"){
+		let value2 = RAM_State[Time][Server][PID][Type]
+		if (value2 !== undefined){
+			RAM_State[Time][Server][PID][Type] = value + value2
+		}
+		
+	}
 }
 
 
