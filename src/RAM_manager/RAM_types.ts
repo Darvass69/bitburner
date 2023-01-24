@@ -44,7 +44,7 @@ let portRAM: PortRAM = {
 // -----------------------------------------------------------------------------
 // below is just testing the types and interfaces to make sure they work as planned
 // example of allocated RAM
-let allocatedRAM: AllocatedRAM = {
+let allocatedRAM: RAMState = {
     5656: {
         home: {
             41:{
