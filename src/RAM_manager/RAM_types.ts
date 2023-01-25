@@ -5,29 +5,28 @@ type RAM = number | null;
 // internal object used to regulate allocated RAM and keep track of things
 //? add something for instant time?
 type RAMState = {
-    [Time: number]: {
-        [Server: string]: {
-            [PID: number]: {
-                Script?: number;
-                Process?: number;
-                Reserved?: [Reserved: number, Priority: number]
-            }
-        }
-    }
-}
+  [Time: number]: {
+    [Server: string]: {
+      [PID: number]: {
+        Script?: number;
+        Process?: number;
+        Reserved?: [Reserved: number, Priority: number];
+      };
+    };
+  };
+};
 
 // for port 1, same as RAM state but primary key is the PID of scripts
 // TODO test time integration in the type
 type PortRAM = {
-    [PID: number]:{
-        Script: [Server: string, RAM: number];
-        Process?: {
-            [Time: number]: [Server: string, RAM: number][]
-        };
-        Reserved?: [Server: string, RAM: number, Priority: number][];
-    }
-}
-
+  [PID: number]: {
+    Script: [Server: string, RAM: number];
+    Process?: {
+      [Time: number]: [Server: string, RAM: number][];
+    };
+    Reserved?: [Server: string, RAM: number, Priority: number][];
+  };
+};
 
 /* 
 TODO
@@ -44,67 +43,66 @@ let portRAM: PortRAM = {
 // -----------------------------------------------------------------------------
 // below is just testing the types and interfaces to make sure they work as planned
 // example of allocated RAM
-let allocatedRAM: AllocatedRAM = {
-    5656: {
-        home: {
-            41:{
-                Script: 8,
-                Reserved: [8, 1]
-            },
-            55: {
-                Script: 8,
-                Process: 3,
-            },
-            66: {
-                Script: 1.6
-            },
-            67: {
-                Script: 1.6
-            },
-            68: {
-                Script: 1.6
-            },
-            69: {
-                Script: 1.6
-            },
-        },
-        n00dles: {
-            41:{
-                Reserved: [4, 1]
-            },
-        },
-        joesguns: {
-            41:{
-                Reserved: [8, 1]
-            },
-        }
+let allocatedRAM: RAMState = {
+  5656: {
+    home: {
+      41: {
+        Script: 8,
+        Reserved: [8, 1],
+      },
+      55: {
+        Script: 8,
+        Process: 3,
+      },
+      66: {
+        Script: 1.6,
+      },
+      67: {
+        Script: 1.6,
+      },
+      68: {
+        Script: 1.6,
+      },
+      69: {
+        Script: 1.6,
+      },
     },
-    6555: {
-        home: {
-            41:{
-                Script: 8,
-                Reserved: [8, 1]
-            },
-            68: {
-                Script: 1.6
-            },
-            69: {
-                Script: 1.6
-            },
-        },
-        n00dles: {
-            41:{
-                Reserved: [4, 1]
-            },
-        },
-        joesguns: {
-            41:{
-                Reserved: [8, 1]
-            },
-        }
-    }
-}
-
+    n00dles: {
+      41: {
+        Reserved: [4, 1],
+      },
+    },
+    joesguns: {
+      41: {
+        Reserved: [8, 1],
+      },
+    },
+  },
+  6555: {
+    home: {
+      41: {
+        Script: 8,
+        Reserved: [8, 1],
+      },
+      68: {
+        Script: 1.6,
+      },
+      69: {
+        Script: 1.6,
+      },
+    },
+    n00dles: {
+      41: {
+        Reserved: [4, 1],
+      },
+    },
+    joesguns: {
+      41: {
+        Reserved: [8, 1],
+      },
+    },
+  },
+};
 
 /*
 // add something for instant time?
@@ -141,4 +139,3 @@ port_RAM = {
     }
 }
 */
-

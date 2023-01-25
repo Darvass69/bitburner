@@ -54,14 +54,17 @@ import { NS, PortData } from "@ns";
 
 //~ ------------------------ Type And Interface Import --------------------------
 import type { AllRAM } from "./FindAllRAM";
-import type {ScriptRequest, ProcessRequest, FreeRequest, ReScanRequest, RAMRequest, PID} from "./Requester_types";
+import type {
+  ScriptRequest,
+  ProcessRequest,
+  FreeRequest,
+  ReScanRequest,
+  RAMRequest,
+  PID,
+} from "./Requester_types";
 
 //~ ----------------------------- Function import -------------------------------
-import {
-    Find_servers,
-    Find_and_compromise,
-    Get_RAM,
-} from "./FindAllRAM";
+import { Find_servers, Find_and_compromise, Get_RAM, AllRAM } from './FindAllRAM';
 
 //& -----------------------------------------------------------------------------
 //&                      Test functions to test functions
@@ -109,71 +112,70 @@ let Test = {
   //^ --------------------------- Next Test Function ------------------------------
 };
 
-var _ns: NS;
-var all_RAM;
-var RAM_state; //!
 //& -----------------------------------------------------------------------------
 //&                                    MAIN
 //& -----------------------------------------------------------------------------
+var _ns: NS;
+var RAM_state; //!
 export async function main(ns: NS): Promise<void> {
-    _ns = ns;
+  _ns = ns;
 
-    //^ ----------------------------- Initialization --------------------------------
-    // finds all available ram (& nuke some servers if they can be nuked)
-    let all_RAM = Find_all_RAM();
-    //! ns.tprint(all_RAM);
+  //^ ----------------------------- Initialization --------------------------------
+  // finds all available ram (& nuke some servers if they can be nuked)
+  let all_RAM = Find_all_RAM();
+  //! ns.tprint(all_RAM);
 
-    ns.clearPort(2);
-    // 1: script, 2: process, 3: free, 4: re-scan
-    Test.Write_to_port(1);
+  ns.clearPort(2);
+  // 1: script, 2: process, 3: free, 4: re-scan
+  Test.Write_to_port(1);
 
-    //& -------------------------------- Main loop ----------------------------------
-    RAM_state = {}; //!
-    let scripts: any = []; //!
-    //while (true){
-    	//^ ------------------------ Read request from port 2 ---------------------------
-    	let port_data: string = String(ns.readPort(2));
-    	ns.tprint("port_data: ", port_data); //! print
-    	if (port_data != "NULL PORT DATA") {
-    		// Identify request type
-    		let request: RAMRequest = JSON.parse(port_data);
+  //& -------------------------------- Main loop ----------------------------------
+  RAM_state = {}; //!
+  let scripts: any = []; //!
+  //while (true){
+  //^ ------------------------ Read request from port 2 ---------------------------
+  let port_data: string = String(ns.readPort(2));
+  ns.tprint("port_data: ", port_data); //! print
+  if (port_data != "NULL PORT DATA") {
+    // Identify request type
+    let request: RAMRequest = JSON.parse(port_data);
 
-			// TODO finish each types of request
-    		//* --------------------------------- Script ------------------------------------
-    		if (request.Script) {
-    		    ns.tprint("request.script: ", request.Script); //! print
-    		    Fit_script_in_RAM(request.Script);
-    		}
+    // TODO finish each types of request
+    //* --------------------------------- Script ------------------------------------
+    if (request.Script) {
+      ns.tprint("request.script: ", request.Script); //! print
+      Fit_script_in_RAM(request.Script);
+    }
 
-	    	//* --------------------------------- Process -----------------------------------
-	    	else if (request.Process) {
-	    	    ns.tprint("request.process: ", request.Process); //! print
-	    	    Fit_process_in_RAM(request.Process);
-	    	}
+    //* --------------------------------- Process -----------------------------------
+    else if (request.Process) {
+      ns.tprint("request.process: ", request.Process); //! print
+      Fit_process_in_RAM(request.Process);
+    }
 
-	    	//* ---------------------------------- Free -------------------------------------
-	    	else if (request.Free) {
-	    	    ns.tprint("request.free: ", request.Free); //! print
-	    	    RAM_state = Free(request.Free);
-	    	}
+    //* ---------------------------------- Free -------------------------------------
+    else if (request.Free) {
+      ns.tprint("request.free: ", request.Free); //! print
+      RAM_state = Free(request.Free);
+    }
 
-	    	//* --------------------------------- Re_Scan -----------------------------------
-	    	else if (request.Re_Scan) {
-	    	    all_RAM = Find_all_RAM();
-	    	    ns.tprint("request.re_scan: ", request.Re_Scan); //! print
-	    	}
-		}
+    //* --------------------------------- Re_Scan -----------------------------------
+    else if (request.Re_Scan) {
+      all_RAM = Find_all_RAM();
+      ns.tprint("request.re_scan: ", request.Re_Scan); //! print
+    }
+  }
 
-    	//^ ------------------------- Manage running scripts ----------------------------
-    	// manage running scripts and free their RAm when they stop
-    	// TODO
-    	let stopped = Check_stopped_scripts(scripts);
-    	for (let script of stopped) {
-    	    Free_script(script);
-    	}
+  //^ ------------------------- Manage running scripts ----------------------------
+  // manage running scripts and free their RAm when they stop
+  // TODO
+  let stopped = Check_stopped_scripts(scripts);
+  for (let script of stopped) {
+    Free_script(script);
+  }
 
-    	await ns.sleep(1000);
-    //}
+  await ns.sleep(1000);
+  //}
 }
 
 //& -----------------------------------------------------------------------------
@@ -193,100 +195,86 @@ function Find_all_RAM() {
 //&                                Fit functions                                 
 //& -----------------------------------------------------------------------------
 
-//^ ---------------------------- Fit Script In RAM ------------------------------
-//!
-/** Tries to fit a script request in the available RAM
- * 
- * @param {ScriptRequest} request Request from a script that want space to be run
- */
-function Fit_script_in_RAM(request: ScriptRequest) {
-	// start simple, find available RAM with t = 0
-	Find_available()
-}
+//& -----------------------------------------------------------------------------
+//&                                Fit Functions
+//& -----------------------------------------------------------------------------
 
-//^ --------------------------- Fit Process In RAM ------------------------------
-function Fit_process_in_RAM(request: ProcessRequest) {
-
-}
-
+//* --------------------------- Types Used For Fit ------------------------------
 type available_RAM = { [server: string]: number };
 //! this is going to be removed eventually
 type temp_RAM_obj = {
-	[PID: number]: {
-		Script?: number;
-		Process?: number;
-		Reserved?: [Reserved: number, Priority: number]
-	}
-}
-
-/** Find all the RAM not allocated
- * 
- * 
- */
-function Find_free(all_RAM: AllRAM, RAM_state: RAMState): AllRAM{
-	let Free_RAM: AllRAM
-	for (let time in RAM_state) {
-		for (let server in RAM_state[time]){
-			let sum = 0
-			for (let PID in RAM_state[time][server]) {
-				RAM_state[time][server][PID]
-			}
-			
-		}
-	}
-}
+  [PID: number]: {
+    Script?: number;
+    Process?: number;
+    Reserved?: [Reserved: number, Priority: number];
+  };
+};
 
 
-function Find_available(servers: string[], all_RAM: AllRAM, RAM_state: RAMState): available_RAM{
-	let times = [0, 15000, 30000]
-	for (let time of times){
-		for (let server of servers){
-			let temp:temp_RAM_obj = RAM_state[time][server]
-	
-		}
-	}
-	
+let Fit = {
+  //^ Properties
+  // object properties used by methods
+  all_RAM: {} as AllRAM,
+  RAM_State: {} as RAMState,
+
+  //^ General
+  General: {
+    Find_available: function (servers: string[]): available_RAM {
+      let all_RAM = Fit.all_RAM
+      let RAM_State = Fit.RAM_State
+
+      let time = 0;
+      for (let server of servers) {
+        let temp: temp_RAM_obj = RAM_State[time][server];
+      }
+
+      return;
+    },
+
+    Fit: function (request: ScriptRequest | ProcessRequest) {},
+
+    Add_to_RAM_state: function (
+      Time: number,
+      Server: string,
+      PID: PID,
+      Type: "Script" | "Process" | "Reserved",
+      value: number,
+      array: [Reserved: number, Priority: number]
+    ) {
+      let RAM_State = Fit.RAM_State
 
 
-	return 
-}
+      if (Type == "Script" || Type == "Process") {
+        let value2 = RAM_State[Time][Server][PID][Type];
+        if (value2 !== undefined) {
+          RAM_State[Time][Server][PID][Type] = value + value2;
+        }
+      }
+    },
+  }
 
-function Add_to_RAM_state(RAM_State: RAMState, Time: number, Server: string, PID: PID, Type: "Script" | "Process" | "Reserved", 
-		value: number, array: [Reserved: number, Priority: number]){
+  //^ ---------------------------- Fit Script In RAM ------------------------------
+  //!
+  Fit_script_in_RAM: function (request: ScriptRequest) {
+    // start simple, find available RAM with t = 0
+    Find_available();
+  },
 
-	if (Type == "Script" || Type == "Process"){
-		let value2 = RAM_State[Time][Server][PID][Type]
-		if (value2 !== undefined){
-			RAM_State[Time][Server][PID][Type] = value + value2
-		}
-	}
-}
+  //^ --------------------------- Fit Process In RAM ------------------------------
+  Fit_process_in_RAM: function (request: ProcessRequest) {},
 
-
-//^ ---------------------------------- Free -------------------------------------
-// !!!
-function Free(request: FreeRequest) {
-
-}
-
-
-function Fit(request: ScriptRequest | ProcessRequest) {
-
-}
-
-
-
-
+  //^ ---------------------------------- Free -------------------------------------
+  // !!!
+  Free: function (request: FreeRequest) {},
+};
 
 //& -----------------------------------------------------------------------------
 //&                      Manage Running Scripts Functions
 //& -----------------------------------------------------------------------------
 //^ -------------------------- Check Stopped Scripts ----------------------------
 function Check_stopped_scripts(script: PID): number[] {
-	return [1,2,3,4,5,6,7,8]
+  return [1, 2, 3, 4, 5, 6, 7, 8];
 }
 
 //^ ------------------------------- Free Script ---------------------------------
-function Free_script(script: PID): void {
-
-}
+function Free_script(script: PID): void {}
