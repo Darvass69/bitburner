@@ -210,11 +210,11 @@ let RAM_Manager = {
     /** Find all available ram (nuke some servers if they can be nuked) and update RAM_Manager.all_RAM  */
     All_RAM: function() {
 	    // get all available server
-	    RAM_Manager.server_list = Find_servers(_ns); // returns an array of all the servers
+	    let all_servers = Find_servers(_ns); // returns an array of all the servers
 	    // get all admin/nuke all Nuke-able
-	    let admin_servers = Find_and_compromise(_ns, RAM_Manager.server_list); // returns an array of all the admin servers
+	    RAM_Manager.server_list = Find_and_compromise(_ns, all_servers); // returns an array of all the admin servers
 	    // get the RAM of all admin servers
-	    RAM_Manager.all_RAM = Get_RAM(_ns, admin_servers); // returns the RAM of all the admin servers as AllRAM
+	    RAM_Manager.all_RAM = Get_RAM(_ns, RAM_Manager.server_list); // returns the RAM of all the admin servers as AllRAM
     },
 
     //* Find available RAM ----------------------------------------------------------
