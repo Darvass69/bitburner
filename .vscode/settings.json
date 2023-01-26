@@ -39,5 +39,6 @@
   	"markdownlint.config": {
 		"MD033": false,
     "MD010": false,
-  	},
+    },
+    "comment-divider.subheaderAlign": "left",
 }

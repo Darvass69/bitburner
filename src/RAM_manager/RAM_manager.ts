@@ -64,7 +64,8 @@ import type {
 } from "./Requester_types";
 
 //~ ----------------------------- Function import -------------------------------
-import { Find_servers, Find_and_compromise, Get_RAM, AllRAM } from './FindAllRAM';
+import { Find_servers, Find_and_compromise, Get_RAM} from './FindAllRAM';
+
 
 //& -----------------------------------------------------------------------------
 //&                      Test functions to test functions
@@ -178,96 +179,146 @@ export async function main(ns: NS): Promise<void> {
   //}
 }
 
+
 //& -----------------------------------------------------------------------------
-//&                                   All RAM                                    
+//&                             RAM manager object                               
 //& -----------------------------------------------------------------------------
-/** finds all available ram (& nuke some servers if they can be nuked) */
-function Find_all_RAM() {
-	// get all available server
-	let all_servers = Find_servers(_ns); // returns an array of all the servers
-	// get all admin/nuke all Nuke-able
-	let admin_servers = Find_and_compromise(_ns, all_servers); // returns an array of all the admin servers
-	// get the RAM of all admin servers
-	all_RAM = Get_RAM(_ns, admin_servers); // returns the RAM of all the admin servers as AllRAM
+//* Initializing Types ----------------------------------------------------------
+type Available_RAM = { 
+  [Time: number]: {
+    [server: string]: number 
+  }
+};
+
+type Server_Threads = {
+  [nb_free_threads: number]: string[]
 }
 
-//& -----------------------------------------------------------------------------
-//&                                Fit functions                                 
-//& -----------------------------------------------------------------------------
 
-//& -----------------------------------------------------------------------------
-//&                                Fit Functions
-//& -----------------------------------------------------------------------------
-
-//* --------------------------- Types Used For Fit ------------------------------
-type available_RAM = { [server: string]: number };
-//! this is going to be removed eventually
-type temp_RAM_obj = {
-  [PID: number]: {
-    Script?: number;
-    Process?: number;
-    Reserved?: [Reserved: number, Priority: number];
-  };
-};
-
-
-let Fit = {
-  //^ Properties
-  // object properties used by methods
+/** Properties start with lowercase, properties containing methods start with "_" and end with "_", methods start with uppercase */
+let RAM_Manager = {
+  //^ Properties ------------------------------------------------------------------
+  // Object properties used by methods
+  server_list: [] as string[],
   all_RAM: {} as AllRAM,
-  RAM_State: {} as RAMState,
+  state_of_RAM: {} as RAMState,
 
-  //^ General
-  General: {
-    Find_available: function (servers: string[]): available_RAM {
-      let all_RAM = Fit.all_RAM
-      let RAM_State = Fit.RAM_State
-
-      let time = 0;
-      for (let server of servers) {
-        let temp: temp_RAM_obj = RAM_State[time][server];
-      }
-
-      return;
+  //^ Find Functions --------------------------------------------------------------
+  // Functions used to find some sort of data (about the game, the current state of RAM, ...)
+  _find_: {
+    //* Find All RAM ----------------------------------------------------------------
+    /** Find all available ram (nuke some servers if they can be nuked) and update RAM_Manager.all_RAM  */
+    All_RAM: function() {
+	    // get all available server
+	    RAM_Manager.server_list = Find_servers(_ns); // returns an array of all the servers
+	    // get all admin/nuke all Nuke-able
+	    let admin_servers = Find_and_compromise(_ns, RAM_Manager.server_list); // returns an array of all the admin servers
+	    // get the RAM of all admin servers
+	    RAM_Manager.all_RAM = Get_RAM(_ns, admin_servers); // returns the RAM of all the admin servers as AllRAM
     },
 
-    Fit: function (request: ScriptRequest | ProcessRequest) {},
+    //* Find available RAM ----------------------------------------------------------
+    /** Find all available RAM for all time slots */
+    Available: function (): Available_RAM {
+      let all_RAM: AllRAM = RAM_Manager.all_RAM
+      let state_of_RAM: RAMState = RAM_Manager.state_of_RAM
+      let available_RAM: Available_RAM = {}
 
-    Add_to_RAM_state: function (
-      Time: number,
-      Server: string,
-      PID: PID,
-      Type: "Script" | "Process" | "Reserved",
-      value: number,
-      array: [Reserved: number, Priority: number]
-    ) {
-      let RAM_State = Fit.RAM_State
-
-
-      if (Type == "Script" || Type == "Process") {
-        let value2 = RAM_State[Time][Server][PID][Type];
-        if (value2 !== undefined) {
-          RAM_State[Time][Server][PID][Type] = value + value2;
+      for (let time in state_of_RAM)
+        for (let server in state_of_RAM[time]) {
+          let free = all_RAM[server]
+          for (let PID in state_of_RAM[time][server]) {
+            let used: number = 0
+            used += state_of_RAM[time][server][PID].Script ?? 0;
+            used += state_of_RAM[time][server][PID].Process ?? 0;
+            free -= used
+          }
+          available_RAM[time][server] = free
         }
-      }
+
+      return available_RAM;
     },
-  }
-
-  //^ ---------------------------- Fit Script In RAM ------------------------------
-  //!
-  Fit_script_in_RAM: function (request: ScriptRequest) {
-    // start simple, find available RAM with t = 0
-    Find_available();
   },
+  
 
-  //^ --------------------------- Fit Process In RAM ------------------------------
-  Fit_process_in_RAM: function (request: ProcessRequest) {},
+  //^ Fit functions ---------------------------------------------------------------
+  // Functions used to fit request in RAM (fit here means "finding an appropriate place")
+  _fit_: {
+    //* General ---------------------------------------------------------------------
+    // General functions used to fit request in RAM
+    General: {
+      //~ Fit -------------------------------------------------------------------------
+      // Find space to fit a request into the available RAM
+      Fit: function (request: RAMRequest) {
+        let request_threads = request?.Script?.RAM.Threads ?? request?.Process?.RAM.Threads ?? 0
+        let request_thread_size = request?.Script?.RAM.ThreadSize ?? request?.Process?.RAM.ThreadSize ?? 0
 
-  //^ ---------------------------------- Free -------------------------------------
-  // !!!
-  Free: function (request: FreeRequest) {},
-};
+        let available_RAM: Available_RAM = RAM_Manager._find_.Available()
+        let server_threads: Server_Threads = {}
 
+        // TODO this is a temp measure, to be replaced by the actual way it needs to be done
+        if (request_threads != 'MAX') {
+
+        // Create an object where we keep the minimum amount of threads a server can hold at the time (in the request) where the RAM is the smallest 
+        // This is donne because we want to keep a request on the same server for the entire time it runs, thus only needing to know the amount at the lowest points
+        for (let server of RAM_Manager.server_list) {
+          let min_threads = Infinity
+          for (let time in available_RAM) {
+            let threads = available_RAM[time][server] / request_thread_size
+            min_threads = threads < min_threads ? (threads < request_threads ? threads : request_threads) : min_threads
+          }
+          server_threads[min_threads].push(server)
+        }
+        
+
+        // in server_threads, if server_threads.all is not empty
+          // chose the best server
+            // < remaining RAM
+        // else, get combinations of servers to get to requested RAM
+          // we want to have the biggest continuous thread blocks, so start with bigger possible threads
+          // then biggest threads with <= remaining threads, until we reach 0 (if no <=, we can use > remaining threads)
+        // if no solution found, error/not able to fullfil request
+
+        }
+      },
+
+      //~ Add to RAM state ------------------------------------------------------------
+      // Add approved request to the approved server(s), time(s), RAM
+      Add_to_RAM_state: function (
+        Time: number,
+        Server: string,
+        PID: PID,
+        Type: "Script" | "Process" | "Reserved",
+        value: number,
+        array: [Reserved: number, Priority: number]
+      ) {
+        let state_of_RAM: RAMState = RAM_Manager.state_of_RAM
+
+
+        if (Type == "Script" || Type == "Process") {
+          let value2 = state_of_RAM[Time][Server][PID][Type];
+          if (value2 !== undefined) {
+            state_of_RAM[Time][Server][PID][Type] = value + value2;
+          }
+        }
+      },
+    }
+
+    //^ ---------------------------- Fit Script In RAM ------------------------------
+    //!
+    Fit_script_in_RAM: function (request: ScriptRequest) {
+      // start simple, find available RAM with t = 0
+      Find_available();
+    },
+
+    //^ --------------------------- Fit Process In RAM ------------------------------
+    Fit_process_in_RAM: function (request: ProcessRequest) {},
+
+    //^ ---------------------------------- Free -------------------------------------
+    // !!!
+    Free: function (request: FreeRequest) {},
+  };
+}
 //& -----------------------------------------------------------------------------
 //&                      Manage Running Scripts Functions
 //& -----------------------------------------------------------------------------
@@ -278,3 +329,12 @@ function Check_stopped_scripts(script: PID): number[] {
 
 //^ ------------------------------- Free Script ---------------------------------
 function Free_script(script: PID): void {}
+
+
+
+
+
+function hasOwnProperty<X extends {}, Y extends PropertyKey>
+  (obj: X, prop: Y): obj is X & Record<Y, unknown> {
+  return obj.hasOwnProperty(prop)
+}
