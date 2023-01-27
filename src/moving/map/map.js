@@ -2,7 +2,7 @@
 
 // basic map & script that allow to connect to desired server
 
-	// EXTRA INFO
+	    // EXTRA INFO
     var show_contract = false;
     var contract_color = "\x1b[38;5;63]m";
     var show_server_level = true;

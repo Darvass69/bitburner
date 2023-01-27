@@ -1,0 +1,12 @@
+https://jestjs.io/docs/getting-started#via-ts-jest
+
+then for type definition, use the 1st one (Install the @jest/globals package:)
+
+then
+https://kulshekhar.github.io/ts-jest/docs/getting-started/installation/#jest-config-file
+
+then in package.json
+    under "scripts" add 
+    "test": "jest"
+
+get extension https://marketplace.visualstudio.com/items?itemName=Orta.vscode-jest

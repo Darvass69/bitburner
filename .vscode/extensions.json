@@ -1,0 +1,19 @@
+{
+    "recommendations": [
+        "streetsidesoftware.code-spell-checker",
+        "parthr2031.colorful-comments",
+        "kamikillerto.vscode-colorize",
+        "stackbreak.comment-divider",
+        "hediet.vscode-drawio",
+        "xabikos.javascriptsnippets",
+        "yzhang.markdown-all-in-one",
+        "shd101wyy.markdown-preview-enhanced",
+        "davidanson.vscode-markdownlint",
+        "pkief.material-icon-theme",
+        "johnpapa.vscode-peacock",
+        "esbenp.prettier-vscode",
+        "chrmarti.regex",
+        "pmneo.tsimporter",
+        "lihui.vs-color-picker"
+    ]
+}

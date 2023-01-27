@@ -134,14 +134,14 @@ function can_have_null_property(x: number): obj_type_2 | null {
     return {prop: x};
 }
 let g = can_have_null_property(1)
-// optionnal property access operator "?."
+// optional property access operator "?."
 // console.log(g.prop)
 console.log(g?.prop)
 
 // optional element access
 array?.[0] // only access if array[0] exist
 
-// optionnal call
+// optional call
 let log: any = null;
 log?.('a'); // executed only if log is an actual function
 

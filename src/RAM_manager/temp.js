@@ -69,3 +69,5 @@ export async function main(ns) {
     const key = Object.keys(obj).sort((a, b) => a - b);
     key.forEach((k) => ns.tprint(`key = ${k}, value = ${obj[k]}`));
 }
+
+
