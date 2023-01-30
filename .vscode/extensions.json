@@ -14,6 +14,7 @@
         "esbenp.prettier-vscode",
         "chrmarti.regex",
         "pmneo.tsimporter",
-        "lihui.vs-color-picker"
+        "lihui.vs-color-picker",
+        "orta.vscode-jest"
     ]
 }

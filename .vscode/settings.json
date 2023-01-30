@@ -41,4 +41,8 @@
     "MD010": false,
     },
     "comment-divider.subheaderAlign": "left",
+    "comment-divider.languagesMap": {
+        "javascript": ["//"],
+        "typescript": ["//"]
+    }
 }

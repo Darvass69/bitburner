@@ -36,7 +36,12 @@ This is for me because I always forget how to do things. If you're not me, you m
   - Type `git clone` + URL
   - Put files in the desired folder (don't forget the .git hidden folder)
 
+### 7. Installing jest
+
+- Go to <https://jestjs.io/docs/getting-started#via-ts-jest>
+  - For the type definition, take the first option (`@jest/globals`)
+- Then, create the config file <https://kulshekhar.github.io/ts-jest/docs/getting-started/installation/#jest-config-file>
+
 ### 6. the cleanup
 
 - remove BeginnersGuide.md
-- 

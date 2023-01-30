@@ -53,7 +53,7 @@ TODO this is orange: todo
 import { NS, PortData } from "@ns";
 
 //~ ------------------------ Type And Interface Import --------------------------
-import type { AllRAM } from "./FindAllRAM";
+import type { AllRAM } from "./Find_All_RAM";
 import type {
   ScriptRequest,
   ProcessRequest,
@@ -64,7 +64,7 @@ import type {
 } from "./Requester_types";
 
 //~ ----------------------------- Function import -------------------------------
-import { Find_servers, Find_and_compromise, Get_RAM} from './FindAllRAM';
+import { Find_servers, Find_and_compromise, Get_RAM} from './Find_All_RAM';
 
 
 //& -----------------------------------------------------------------------------
@@ -184,21 +184,21 @@ export async function main(ns: NS): Promise<void> {
 //&                             RAM manager object                               
 //& -----------------------------------------------------------------------------
 //^ Initializing Types ----------------------------------------------------------
-type Available_RAM = { 
+export type AvailableRAM = { 
   [Time: number]: {
     [server: string]: number 
   }
 };
 
-type Server_Threads = {
+export type ServerThreads = {
   [nb_free_threads: number]: [server: string, remaining: number][]
 }
 
-type TimeInterval = [start_time: number, end_time: number, ...time_stamps: number[]]
+export type TimeInterval = [start_time: number, end_time: number, ...time_stamps: number[]]
 
 // TODO improve description of properties, methods, etc
 
-// TODO test RAM_Manager._find_.All_RAM()
+// TODO test RAM_Manager._find_.All_RAM() --> probably don't need to test this one
 // TODO test RAM_Manager._find_.Available_RAM()
 // TODO test RAM_Manager._time_.Sorted_times_in_state()
 // TODO finish RAM_Manager._time_.Times_in_interval(...)
@@ -214,7 +214,7 @@ type TimeInterval = [start_time: number, end_time: number, ...time_stamps: numbe
 
 
 /** Properties start with lowercase, properties containing methods or properties start with "_" and end with "_", methods start with uppercase */
-let RAM_Manager = {
+export let RAM_Manager = {
   //~ Properties ------------------------------------------------------------------
   // Object properties used by methods
   server_list: [] as string[],
@@ -237,10 +237,10 @@ let RAM_Manager = {
 
     //* Find available RAM ----------------------------------------------------------
     /** Find all available RAM for all time slots */
-    Available_RAM: function (): Available_RAM {
+    Available_RAM: function (): AvailableRAM {
       let all_RAM: AllRAM = RAM_Manager.all_RAM
       let state_of_RAM: RAMState = RAM_Manager.state_of_RAM
-      let available_RAM: Available_RAM = {}
+      let available_RAM: AvailableRAM = {}
 
       for (let time in state_of_RAM)
         for (let server in state_of_RAM[time]) {
@@ -267,13 +267,13 @@ let RAM_Manager = {
     _general_: {
       //* Fit -------------------------------------------------------------------------
       // Find space to fit a request into the available RAM
-      Fit: function (request: RAMRequest) {
+      Fit_any: function (request: RAMRequest) {
         let requests: ScriptRequest | ProcessRequest
         let request_threads = request?.Script?.RAM.Threads ?? request?.Process?.RAM.Threads ?? 0
         let request_thread_size = request?.Script?.RAM.ThreadSize ?? request?.Process?.RAM.ThreadSize ?? 0
 
-        let available_RAM: Available_RAM = RAM_Manager._find_.Available_RAM()
-        let server_threads: Server_Threads = {}
+        let available_RAM: AvailableRAM = RAM_Manager._find_.Available_RAM()
+        let server_threads: ServerThreads = {}
 
         // TODO this is a temp measure, to be replaced by the actual way it needs to be done
         if (request_threads != 'MAX') {
@@ -366,12 +366,12 @@ let RAM_Manager = {
   /** functions and property used to read and manipulate times in state_of_RAM */
   _time_: {
     //~ Sorted Times ----------------------------------------------------------------
-    sorted_times: [] as number[],
+    sorted_timestamps: [] as number[],
 
     //* Sort Times ------------------------------------------------------------------
     /** This function updates RAM-Manager._time_.sorted_times with a sorted (ascending) list of every time stamps in state RAM */
-    Sorted_times_in_state: function (): number[] {
-      return Object.keys(RAM_Manager.state_of_RAM).map(Number).sort((a, b) => a - b)
+    Sorted_timestamps_in_state: function () {
+      RAM_Manager._time_.sorted_timestamps = Object.keys(RAM_Manager.state_of_RAM).map(Number).sort((a, b) => a - b)
     },
 
     //* Time Blocks In Interval -----------------------------------------------------
@@ -381,8 +381,8 @@ let RAM_Manager = {
      * The first element is the start time and the second element is the end time, the rest is all timestamps.
      * 
      * @param update? - set to true to update sorted_times to have up to date times */
-    Times_in_interval: function (timing: "instant" | "infinite" | [StartTime: number, EndTime?: number], update?: boolean): TimeInterval{
-      if (update) RAM_Manager._time_.Sorted_times_in_state()
+    Timestamps_in_interval: function (timing: "instant" | "infinite" | [StartTime: number, EndTime?: number], update?: boolean): TimeInterval{
+      if (update) RAM_Manager._time_.Sorted_timestamps_in_state()
       // for instant,
         // because the game updates each ~4ms, we are going to have the starting and ending times be ~32ms later than instant.
         // ex: if current time is 100, start time is 132, end time is 164. This helps prevent collision if the current time is close to a change in RAM
@@ -410,17 +410,17 @@ let RAM_Manager = {
       let interval_started: boolean = false
       let interval_ended: boolean = false
 
-      for (let time of time_interval){
+      for (let timestamp of RAM_Manager._time_.sorted_timestamps){
         // if start time < time < end time --> add to list
-        if (start_time < time && time < end_time){
-          time_interval.push(time)
+        if (start_time < timestamp && timestamp < end_time){
+          time_interval.push(timestamp)
           interval_started = true
         }
         // we add the current time at time_interval[2] so that once we start the interval, we have start time included
-        else if (!interval_started) time_interval[2] = time
+        else if (!interval_started) time_interval[2] = timestamp
         // after we add the last element, we add time one more time to include end time
         else if(!interval_ended) {
-          time_interval.push(time)
+          time_interval.push(timestamp)
           interval_ended = true
         }
       }
