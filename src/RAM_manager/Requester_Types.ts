@@ -22,7 +22,7 @@ export type ScriptRequest = {
     ThreadSize: number;
     Server: string[];
   };
-  Timing: "infinite" | "instant" | [StartTime: number, EndTime: number];
+  Timing: "infinite" | "instant" | [StartTime: number, EndTime?: number];
   args: any;
 };
 

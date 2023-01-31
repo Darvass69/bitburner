@@ -44,5 +44,9 @@
     "comment-divider.languagesMap": {
         "javascript": ["//"],
         "typescript": ["//"]
-    }
+    },
+    "jest.disabledWorkspaceFolders": [
+      "/src/", 
+      "/dist/"
+    ]
 }
